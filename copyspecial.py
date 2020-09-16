@@ -7,7 +7,7 @@
 # http://www.apache.org/licenses/LICENSE-2.0
 
 # give credits
-__author__ = "???"
+__author__ = "Wesley Salesberry"
 
 import re
 import os
@@ -23,31 +23,28 @@ def get_special_paths(dirname):
     results = []
     filenames = os.listdir(dirname)
     for filename in filenames:
-        if re.match(r'.+\_\_\w+\_\_.+', filename):
-            results.append(filename)
+        if re.search(r'__\w*__', filename):
+            results.append(os.path.abspath(os.path.join(dirname, filename)))
 
     return results
 
 
 def copy_to(path_list, dest_dir):
-    # your code here
+    """Given a dirname, returns a list of all its special files."""
+
     if not os.path.isdir(dest_dir):
         os.makedirs(dest_dir)
 
-    paths = get_path(path_list)
-    for _ in paths:
-        shutil.copy(_, dest_dir + '/' + _)
+    for _ in path_list:
+        shutil.copy(_, os.path.join(dest_dir, os.path.basename(_)))
 
 
 def zip_to(path_list, dest_zip):
-    # your code here
-    paths = get_special_paths(path_list)
-    cmd = "zip -j %s %s" % (dest_zip, ' '.join(paths))
+    """Main driver code for copyspecial."""
+    cmd = ["zip", "-j", dest_zip]
+    cmd.extend(path_list)
     print("Command I'm going to do:", cmd)
-    err, out = commands.getstatusoutput(cmd)
-    if err:
-        print(out)
-        sys.exit(1)
+    subprocess.run(cmd)
 
 
 def main(args):
@@ -63,9 +60,8 @@ def main(args):
 
     paths = get_special_paths(ns.fromdir)
 
-    if not ns.todir and not ns.tozip:
-        parser.print_help()
-        sys.exit(1)
+    # if not ns.todir and not ns.tozip:
+    #     parser.print_help()
 
     if ns.todir:
         copy_to(paths, ns.todir)
